@@ -339,13 +339,16 @@
           </div>
 
           <div class="highlight-box">
-            <strong>🔥 Fine-tuning + RAG 모두 경험 가능!</strong><br />
-            Instruction Tuning 데이터로 LLM 파인튜닝 + 민원 지식베이스로 RAG 구축
+            <strong>🔥 Fine-tuning (스킬 훈련) + RAG (지식 주입) 결합!</strong><br />
+            <strong>EDA 인사이트:</strong> 보유 데이터는 <strong>LLM의 '지시 이행 스킬'</strong>을
+            파인튜닝하고, RAG는 <strong>'별도 지식베이스'</strong>로 구축하여 결합.
           </div>
 
           <div class="section-title"><span class="emoji">✅</span> 장점</div>
           <div class="pros">
-            <div class="list-item"><strong>Instruction Tuning 데이터로 LLM 파인튜닝 가능</strong></div>
+            <div class="list-item">
+              <strong>멀티태스크(Q&A, 분류, 요약) Instruction 데이터로 LLM 스킬 파인튜닝</strong>
+            </div>
             <div class="list-item">Llama, Gemma, EEVE 등 오픈소스 LLM 파인튜닝 실습</div>
             <div class="list-item">LoRA, QLoRA 등 효율적 파인튜닝 기법 적용</div>
             <div class="list-item">RAG와 Fine-tuned 모델 결합으로 최적 성능</div>
@@ -358,19 +361,26 @@
           <div class="cons">
             <div class="list-item">파인튜닝 시간 필요 (2-3일 소요 가능)</div>
             <div class="list-item">GPU 리소스 필요 (Colab Pro 또는 팀 서버)</div>
-            <div class="list-item">민원 상담 데이터 전처리 필요</div>
+            <div class="list-item">
+              데이터 전처리 필요 (EDA에서 발견된 <strong>화자 노이즈, 유니코드 NFD 문제</strong> 등 처리)
+            </div>
           </div>
 
-          <div class="section-title"><span class="emoji">🔧</span> Fine-tuning 전략 (수정됨)</div>
+          <div class="section-title"><span class="emoji">🔧</span> Fine-tuning 전략 (EDA 기반 수정)</div>
           <div class="content">
             <div style="margin: 8px 0; padding-left: 20px; position: relative">
-              <strong>방법 1:</strong> Llama-3/Gemma 등 LLM에 Instruction Tuning
+              <strong>방법 1 (멀티태스크):</strong> Q&A, 분류, 요약 3개 Task를
+              <strong>프롬프트 템플릿</strong>(예: `### Instruction: ...`)으로 구분하여 Llama-3/Gemma 등에 동시
+              학습
             </div>
             <div style="margin: 8px 0; padding-left: 20px; position: relative">
-              <strong>방법 2:</strong> EEVE 등 한국어 특화 모델에 LoRA/QLoRA 적용
+              <strong>방법 2 (효율화):</strong> EEVE 등 한국어 특화 모델에 LoRA/QLoRA를 적용하여 Colab Pro
+              환경에서 학습
             </div>
             <div style="margin: 8px 0; padding-left: 20px; position: relative">
-              <strong>방법 3:</strong> 멀티턴 대화 데이터 포맷으로 변환 후 학습
+              <strong>방법 3 (RAG 결합):</strong> 1) 파인튜닝으로
+              <strong>'지시 이행'</strong> 모델(`my_tuned_model`)을 만들고, 2) RAG의 LLM으로 이 모델을
+              사용하여 <strong>'외부 지식'</strong>(민원 DB)에 대한 답변 생성
             </div>
           </div>
 
@@ -381,7 +391,6 @@
 
           <div class="recommendation">🥇 1순위 추천: 목표에 가장 부합</div>
         </div>
-
         <div class="card" data-difficulty="hard" data-category="high-ft">
           <div class="card-header">
             <div class="card-title">2️⃣ QA봇 (RLHF)</div>
@@ -691,7 +700,7 @@
         <div class="summary-grid">
           <div class="summary-item">
             <div class="summary-item-title">🥇 1순위: 상담봇</div>
-            <strong>Fine-tuning + RAG 완벽 결합</strong>
+            <strong>Fine-tuning + RAG 완벽 결합</strong><br />
             ✓ Instruction Tuning 데이터로 LLM 파인튜닝<br />
             ✓ LoRA/QLoRA 효율적 학습<br />
             ✓ RAG로 지식베이스 구축<br />
