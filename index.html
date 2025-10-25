@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실전 프로젝트 02 과제 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 30px;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            padding: 0 10px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .filter-btn.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .card.hidden {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .card-title {
+            font-size: clamp(1.3rem, 4vw, 1.6rem);
+            color: #667eea;
+            font-weight: bold;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .badge-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .finetuning-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            border-radius: 20px;
+            font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .rag-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20px;
+            font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .section-title {
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .content {
+            font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+            line-height: 1.7;
+            color: #555;
+        }
+        
+        .pros {
+            background: linear-gradient(to right, rgba(76, 175, 80, 0.08), rgba(76, 175, 80, 0.02));
+            padding: 15px;
+            border-left: 4px solid #4caf50;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .cons {
+            background: linear-gradient(to right, rgba(244, 67, 54, 0.08), rgba(244, 67, 54, 0.02));
+            padding: 15px;
+            border-left: 4px solid #f44336;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .list-item {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .list-item::before {
+            content: "•";
+            position: absolute;
+            left: 5px;
+            font-weight: bold;
+        }
+        
+        .recommendation {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .summary-section {
+            background: white;
+            border-radius: 16px;
+            padding: clamp(20px, 5vw, 30px);
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .summary-title {
+            font-size: clamp(1.4rem, 4vw, 1.8rem);
+            color: #667eea;
+            margin-bottom: 25px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: 20px;
+        }
+        
+        .summary-item {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .summary-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .summary-item-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: clamp(1rem, 3vw, 1.1rem);
+        }
+        
+        .summary-item strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: clamp(1.05rem, 3vw, 1.15rem);
+            color: #333;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #fdcb6e;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .cards-grid {
+                gap: 20px;
+            }
+            
+            .filter-buttons {
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .section-title {
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 실전 프로젝트 02 과제 비교 분석</h1>
+        <p class="subtitle">5인 팀, 1주일 기준 | Fine-tuning 중심 + RAG/LangChain 경험</p>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterCards('recommended')">추천 과제만</button>
+            <button class="filter-btn" onclick="filterCards('all')">전체 과제</button>
+            <button class="filter-btn" onclick="filterCards('high-ft')">Fine-tuning 필수</button>
+            <button class="filter-btn" onclick="filterCards('balanced')">Fine-tuning + RAG</button>
+            <button class="filter-btn" onclick="filterCards('easy')">쉬움 (⭐⭐)</button>
+            <button class="filter-btn" onclick="filterCards('hard')">어려움 (⭐⭐⭐⭐+)</button>
+        </div>
+        
+        <div class="cards-grid">
+            <!-- 1. 상담봇 -->
+            <div class="card" data-difficulty="easy" data-category="balanced" data-priority="top">
+                <div class="card-header">
+                    <div class="card-title">1️⃣ 상담봇</div>
+                    <div class="badge-container">
+                        <div class="difficulty">난이도: ⭐⭐ (2/5)</div>
+                        <div class="finetuning-badge">Fine-tuning: ⭐⭐⭐⭐</div>
+                        <div class="rag-badge">RAG 활용: ⭐⭐⭐⭐⭐</div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>🔥 Fine-tuning + RAG 모두 경험 가능!</strong><br>
+                    Instruction Tuning 데이터로 LLM 파인튜닝 + 민원 지식베이스로 RAG 구축
+                </div>
+                
+                <div class="section-title"><span class="emoji">✅</span> 장점</div>
+                <div class="pros">
+                    <div class="list-item"><strong>Instruction Tuning 데이터로 LLM 파인튜닝 가능</strong></div>
+                    <div class="list-item">Llama, Gemma, EEVE 등 오픈소스 LLM 파인튜닝 실습</div>
+                    <div class="list-item">LoRA, QLoRA 등 효율적 파인튜닝 기법 적용</div>
+                    <div class="list-item">RAG와 Fine-tuned 모델 결합으로 최적 성능</div>
+                    <div class="list-item">멀티턴 대화 데이터로 맥락 이해 학습</div>
+                    <div class="list-item">LangChain으로 파인튜닝 모델 + RAG 통합</div>
+                    <div class="list-item">1주일 내 완성 가능한 난이도</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">❌</span> 단점</div>
+                <div class="cons">
+                    <div class="list-item">파인튜닝 시간 필요 (2-3일 소요 가능)</div>
+                    <div class="list-item">GPU 리소스 필요 (Colab Pro 또는 팀 서버)</div>
+                    <div class="list-item">민원 상담 데이터 전처리 필요</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">🔧</span> Fine-tuning 전략</div>
+                <div class="content">
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 1:</strong> Whisper-large 영어 STT 파인튜닝</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 2:</strong> NLLB-200 영→한 번역 파인튜닝</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 3:</strong> 두 모델 독립 학습 후 파이프라인 구성</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">⚙️</span> 핵심 기술 스택</div>
+                <div class="content" style="color: #222; font-weight: 500;">
+                    Whisper Fine-tuning, NLLB/M2M-100, Audio Processing, LoRA, Pipeline 구축
+                </div>
+                
+                <div class="recommendation">△ 보통: Fine-tuning 경험은 좋으나 RAG 없음</div>
+            </div>
+            
+            <!-- 6. STT -->
+            <div class="card" data-difficulty="hard" data-category="high-ft">
+                <div class="card-header">
+                    <div class="card-title">6️⃣ STT</div>
+                    <div class="badge-container">
+                        <div class="difficulty">난이도: ⭐⭐⭐⭐ (4/5)</div>
+                        <div class="finetuning-badge">Fine-tuning: ⭐⭐⭐⭐</div>
+                        <div class="rag-badge">RAG 활용: ⭐</div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>🔊 노이즈 환경 특화 Whisper 파인튜닝</strong><br>
+                    다양한 소음 데이터로 강건한 STT 모델 구축
+                </div>
+                
+                <div class="section-title"><span class="emoji">✅</span> 장점</div>
+                <div class="pros">
+                    <div class="list-item"><strong>Whisper를 노이즈 환경에 파인튜닝</strong></div>
+                    <div class="list-item">음성 인식 전문 기술 습득</div>
+                    <div class="list-item">Data Augmentation (노이즈 추가) 경험</div>
+                    <div class="list-item">실무에서 많이 사용하는 태스크</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">❌</span> 단점</div>
+                <div class="cons">
+                    <div class="list-item">RAG/LangChain 경험 불가</div>
+                    <div class="list-item">노이즈 제거 전처리 까다로움</div>
+                    <div class="list-item">음성 처리 배경지식 필요</div>
+                    <div class="list-item">평가 지표 설정 복잡 (CER/WER)</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">🔧</span> Fine-tuning 전략</div>
+                <div class="content">
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 1:</strong> Whisper-medium 노이즈 데이터로 파인튜닝</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 2:</strong> Wav2Vec2 한국어 모델 파인튜닝</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>전처리:</strong> Noise Reduction, Audio Augmentation</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">⚙️</span> 핵심 기술 스택</div>
+                <div class="content" style="color: #222; font-weight: 500;">
+                    Whisper/Wav2Vec2, Audio Preprocessing, Noise Reduction, LoRA, CTC Loss
+                </div>
+                
+                <div class="recommendation">❌ 비추천: RAG 경험 불가</div>
+            </div>
+            
+            <!-- 7. 오타 수정 -->
+            <div class="card" data-difficulty="easy" data-category="high-ft">
+                <div class="card-header">
+                    <div class="card-title">7️⃣ 오타 수정</div>
+                    <div class="badge-container">
+                        <div class="difficulty">난이도: ⭐⭐ (2/5)</div>
+                        <div class="finetuning-badge">Fine-tuning: ⭐⭐⭐⭐</div>
+                        <div class="rag-badge">RAG 활용: ⭐</div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>✏️ 문법 교정 특화 모델 파인튜닝</strong><br>
+                    C4_200M 데이터로 오타/문법 수정 모델 학습
+                </div>
+                
+                <div class="section-title"><span class="emoji">✅</span> 장점</div>
+                <div class="pros">
+                    <div class="list-item"><strong>대규모 C4_200M 데이터로 파인튜닝</strong></div>
+                    <div class="list-item">T5, BART 등 Seq2Seq 모델 학습</div>
+                    <div class="list-item">BEA-2019 리더보드로 객관적 평가</div>
+                    <div class="list-item">구현 난이도 낮아 파인튜닝에 집중</div>
+                    <div class="list-item">명확한 입출력 쌍</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">❌</span> 단점</div>
+                <div class="cons">
+                    <div class="list-item">RAG/LangChain 활용 불가</div>
+                    <div class="list-item">전통적인 Seq2Seq 파인튜닝</div>
+                    <div class="list-item">문법성 판단이 주관적일 수 있음</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">🔧</span> Fine-tuning 전략</div>
+                <div class="content">
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 1:</strong> T5-base 파인튜닝 (오타 → 정상)</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 2:</strong> BART + LoRA 효율적 학습</div>
+                    <div style="margin: 8px 0; padding-left: 20px; position: relative;"><strong>방법 3:</strong> GPT 스타일 모델 Instruction Tuning</div>
+                </div>
+                
+                <div class="section-title"><span class="emoji">⚙️</span> 핵심 기술 스택</div>
+                <div class="content" style="color: #222; font-weight: 500;">
+                    T5/BART, Seq2Seq Fine-tuning, LoRA, BEA-2019 평가
+                </div>
+                
+                <div class="recommendation">△ 보통: 파인튜닝은 좋으나 RAG 없음</div>
+            </div>
+        </div>
+        
+        <!-- 최종 추천 요약 -->
+        <div class="summary-section">
+            <div class="summary-title">📋 Fine-tuning 중심 최종 추천</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-item-title">🥇 1순위: 상담봇</div>
+                    <strong>Fine-tuning + RAG 완벽 결합</strong>
+                    ✓ Instruction Tuning 데이터로 LLM 파인튜닝<br>
+                    ✓ LoRA/QLoRA 효율적 학습<br>
+                    ✓ RAG로 지식베이스 구축<br>
+                    ✓ LangChain으로 통합<br>
+                    ✓ 멀티턴 대화 학습<br>
+                    ✓ 1주일 완성 가능<br>
+                    <strong style="color: #e74c3c;">→ Fine-tuning + RAG 둘 다 경험!</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">🥈 2순위: 논문 요약</div>
+                    <strong>요약 모델 파인튜닝 집중</strong>
+                    ✓ T5/BART/Llama 파인튜닝<br>
+                    ✓ 구현 난이도 낮음<br>
+                    ✓ ROUGE 명확한 평가<br>
+                    ✓ 안정적 완성 가능<br>
+                    ⚠️ RAG는 제한적<br>
+                    <strong style="color: #f39c12;">→ 파인튜닝만 집중 학습</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">🥉 3순위: 오타 수정</div>
+                    <strong>Seq2Seq 파인튜닝</strong>
+                    ✓ C4_200M 대규모 데이터<br>
+                    ✓ T5 파인튜닝 경험<br>
+                    ✓ BEA-2019 리더보드<br>
+                    ✓ 구현 단순<br>
+                    ⚠️ RAG 경험 불가<br>
+                    <strong style="color: #f39c12;">→ 기본 파인튜닝 연습용</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">⚠️ 고급 도전</div>
+                    <strong>QA봇 (RLHF)</strong>
+                    ✓ 최고 수준 파인튜닝<br>
+                    ✓ Reward Model + PPO<br>
+                    ✓ 차별화된 경험<br>
+                    ✗ 1주일로 매우 부족<br>
+                    ✗ 높은 실패 리스크<br>
+                    ✗ RAG 경험 제한적<br>
+                    <strong style="color: #e74c3c;">→ 숙련팀만 도전</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">❌ 비추천</div>
+                    <strong>Semantic Parsing, 음성번역, STT</strong>
+                    <strong>Semantic Parsing:</strong><br>
+                    ✗ 난이도 최상 (5/5)<br>
+                    ✗ 1주일로 불가능<br>
+                    <strong>음성번역/STT:</strong><br>
+                    ✗ RAG 경험 불가<br>
+                    ✗ 음성 처리 전문성 필요<br>
+                    <strong style="color: #95a5a6;">→ 목표와 불일치</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상담봇 상세 가이드 -->
+        <div class="summary-section">
+            <div class="summary-title">🚀 상담봇 1주일 로드맵 (Fine-tuning + RAG)</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-item-title">📅 Day 1-2</div>
+                    <strong>데이터 준비 + 파인튜닝 시작</strong><br>
+                    • EDA 및 데이터 분석<br>
+                    • Instruction Tuning 포맷 변환<br>
+                    • Llama-3-8B/EEVE 모델 선정<br>
+                    • LoRA 설정 및 학습 시작<br>
+                    • RAG용 지식베이스 구축 시작
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">📅 Day 3-4</div>
+                    <strong>파인튜닝 완료 + RAG 구축</strong><br>
+                    • 파인튜닝 완료 및 검증<br>
+                    • FAISS/Chroma 벡터 DB 구축<br>
+                    • 검색 성능 최적화<br>
+                    • 파인튜닝 모델과 RAG 연결<br>
+                    • 초기 테스트
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">📅 Day 5-6</div>
+                    <strong>LangChain 통합 + 최적화</strong><br>
+                    • ConversationBufferMemory 구현<br>
+                    • 멀티턴 대화 테스트<br>
+                    • 프롬프트 엔지니어링<br>
+                    • 성능 최적화<br>
+                    • Gradio UI 개발
+                </div>
+                
+                <div class="summary-item">
+                    <div class="summary-item-title">📅 Day 7</div>
+                    <strong>마무리 + 발표 준비</strong><br>
+                    • 시연 영상 제작<br>
+                    • 발표 자료 작성<br>
+                    • GitHub 정리<br>
+                    • 최종 점검
+                </div>
+            </div>
+        </div>
+
+        <!-- 기술 비교표 -->
+        <div class="summary-section">
+            <div class="summary-title">⚖️ 과제별 기술 경험 비교</div>
+            <div style="overflow-x: auto; margin-top: 20px;">
+                <table style="width: 100%; min-width: 600px; border-collapse: collapse; border-radius: 12px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px 10px; text-align: left; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem); white-space: nowrap;">과제명</th>
+                            <th style="padding: 15px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem); white-space: nowrap;">Fine-tuning</th>
+                            <th style="padding: 15px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem);">RAG</th>
+                            <th style="padding: 15px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem); white-space: nowrap;">LangChain</th>
+                            <th style="padding: 15px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem);">난이도</th>
+                            <th style="padding: 15px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2); font-size: clamp(0.9rem, 2.5vw, 1rem);">완성도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #e8f5e9;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-weight: bold; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">상담봇</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                        </tr>
+                        <tr style="background: #fff3e0;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">QA봇 (RLHF)</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                        </tr>
+                        <tr style="background: #f5f5f5;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">논문 요약</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                        </tr>
+                        <tr style="background: #ffebee;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">Semantic Parsing</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                        </tr>
+                        <tr style="background: #f5f5f5;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">음성 번역</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐</td>
+                        </tr>
+                        <tr style="background: #f5f5f5;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">STT</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                        </tr>
+                        <tr style="background: #f5f5f5;">
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; font-size: clamp(0.85rem, 2.5vw, 0.95rem);">오타 수정</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐</td>
+                            <td style="padding: 12px 10px; border: 1px solid #ddd; text-align: center; font-size: clamp(0.8rem, 2vw, 0.9rem);">⭐⭐⭐⭐</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 페이지 로드 시 추천 과제만 보이도록
+        window.addEventListener('DOMContentLoaded', function() {
+            filterCards('recommended');
+        });
+
+        function filterCards(category) {
+            const cards = document.querySelectorAll('.card');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            cards.forEach(card => {
+                const difficulty = card.dataset.difficulty;
+                const cardCategory = card.dataset.category;
+                const priority = card.dataset.priority;
+                
+                if (category === 'recommended') {
+                    // 최우선 추천(상담봇)과 2순위(논문 요약)만 표시
+                    if (priority === 'top' || priority === 'second') {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                } else if (category === 'all') {
+                    card.classList.remove('hidden');
+                } else if (category === 'high-ft') {
+                    card.classList.remove('hidden');
+                } else if (category === 'balanced' && cardCategory === 'balanced') {
+                    card.classList.remove('hidden');
+                } else if (category === 'easy' && difficulty === 'easy') {
+                    card.classList.remove('hidden');
+                } else if (category === 'hard' && difficulty === 'hard') {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
