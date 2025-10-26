@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🚀 모델 학습 리포트 (T5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Inter", "Noto Sans KR", sans-serif;
+        background-color: #f8f7f4; /* Calm Neutral: Ivory */
+      }
+      .nav-item {
+        transition: all 0.2s ease;
+      }
+      .nav-item:hover {
+        background-color: #eef2ff; /* Indigo Accent Hover */
+        color: #4338ca;
+      }
+      .nav-item.active {
+        background-color: #4f46e5; /* Indigo Accent */
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      /* Hide scrollbar */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .stat-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      /* Syntax Highlighting Style */
+      pre {
+        background-color: #1f2937; /* bg-gray-800 */
+        color: #d1d5db; /* text-gray-300 */
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.875rem;
+      }
+      pre .token.comment {
+        color: #6b7280; /* text-gray-500 */
+      }
+      pre .token.function {
+        color: #c084fc; /* text-purple-400 */
+      }
+      pre .token.string {
+        color: #a5f3fc; /* text-cyan-200 */
+      }
+      pre .token.keyword {
+        color: #f87171; /* text-red-400 */
+      }
+      pre .token.number {
+        color: #fcd34d; /* text-amber-300 */
+      }
+    </style>
+  </head>
+  <body class="text-gray-800">
+    <div class="flex flex-col md:flex-row min-h-screen">
+      <nav class="md:w-64 bg-white p-4 md:p-6 shadow-lg md:min-h-screen shrink-0">
+        <h1 class="text-2xl font-bold text-indigo-700 mb-6">🚀 모델 학습 리포트</h1>
+        <ul class="space-y-2">
+          <li>
+            <a
+              href="#home"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700 active"
+              onclick="showPage('home', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                ></path>
+              </svg>
+              개요 (Summary)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#setup"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('setup', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                ></path>
+              </svg>
+              환경 설정 (Setup)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#tokenization"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('tokenization', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                ></path>
+              </svg>
+              데이터 전처리 (Tokenization)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#arguments"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('arguments', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m12 0a2 2 0 100-4m0 4a2 2 0 110-4m-6 0v-2m0 2a2 2 0 100 4m0-4a2 2 0 110 4"
+                ></path>
+              </svg>
+              학습 설정 (Arguments)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#results"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('results', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+              학습 결과 (Results)
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="flex-1 p-6 md:p-10 overflow-auto no-scrollbar">
+        <section id="page-home" class="page-content">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">💡 학습 개요</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">기반 모델</div>
+              <div class="text-2xl font-bold text-indigo-600">KETI-AIR/long-ke-t5-base</div>
+              [cite_start]
+              <div class="text-sm text-gray-500">[cite: 873, 884]</div>
+            </div>
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">학습 데이터 (Train)</div>
+              <div class="text-3xl font-bold text-indigo-600">205,711<span class="text-xl ml-1">건</span></div>
+              [cite_start]
+              <div class="text-sm text-gray-500">[cite: 914]</div>
+            </div>
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">검증 데이터 (Val)</div>
+              <div class="text-3xl font-bold text-indigo-600">25,705<span class="text-xl ml-1">건</span></div>
+              [cite_start]
+              <div class="text-sm text-gray-500">[cite: 918]</div>
+            </div>
+            <div class="stat-card bg-indigo-600 text-white">
+              <div class="text-sm font-medium text-indigo-200">최종 검증 손실 (Val Loss)</div>
+              <div class="text-3xl font-bold">0.9397</div>
+              [cite_start]
+              <div class="text-sm text-indigo-100">Step 12000 기준 [cite: 1104, 1105]</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">최종 학습 시간</h3>
+              <div class="text-4xl font-bold text-gray-800" title="12857 스텝 완료">
+                2<span class="text-2xl ml-1 mr-2">시간</span> 25<span class="text-2xl ml-1 mr-2">분</span> 19<span
+                  class="text-2xl ml-1"
+                  >초</span
+                >
+              </div>
+              <div class="text-sm text-gray-500 mt-2">[cite_start]A100 GPU (80GB) 환경 [cite: 1096]</div>
+            </div>
+
+            <div class="lg:col-span-2 stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">학습 결과 요약</h3>
+              <div class="p-4 bg-green-50 border border-green-300 rounded-lg">
+                <p class="font-semibold text-green-800">
+                  결론: 성공. 최종 검증 손실(0.939)이 훈련 손실(1.309)보다 낮게 나타났습니다. 이는 모델이
+                  오버피팅(Overfitting)되지 않고 [cite_start]일반화 성능을 확보했음을 의미합니다. [cite: 1101, 1104,
+                  1105]
+                </p>
+              </div>
+              <div class="mt-4 space-y-3 text-gray-700">
+                <p>
+                  <strong class="text-gray-900">1. `nan` 오류 해결:</strong>
+                  초기 학습 시도에서 발생한 `Validation Loss: nan` 문제는 `max_grad_norm=1.0` (그래디언트 클리핑) 및
+                  [cite_start]`warmup_ratio=0.05` 설정을 통해 성공적으로 해결했습니다. [cite: 1045, 1051]
+                </p>
+                <p>
+                  <strong class="text-gray-900">2. `OOM` 오류 해결:</strong>
+                  `OutOfMemoryError`는 배치 크기를 16에서 8로 줄이고 `gradient_accumulation_steps=2`로 설정하여 유효
+                  배치 크기 16을 [cite_start]유지하면서 메모리 사용량을 절반으로 줄여 해결했습니다. [cite: 1047-1049]
+                </p>
+                <p>
+                  <strong class="text-gray-900">3. A100 최적화:</strong>
+                  `bf16=True` 및 `Flash Attention 2` (모델 로드 시 적용)를 사용하여 `MAX_INPUT_LENGTH=2048`의 긴 시퀀스
+                  학습을 2시간 25분 [cite_start]만에 완료했습니다. [cite: 1055, 1096]
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-setup" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">🛠️ 1~4단계: 환경 설정</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">라이브러리</h3>
+              <ul class="list-disc list-outside space-y-2 pl-5 text-gray-700">
+                [cite_start]
+                <li>transformers (Hugging Face) [cite: 858]</li>
+                [cite_start]
+                <li>datasets [cite: 858]</li>
+                [cite_start]
+                <li>accelerate [cite: 858]</li>
+                [cite_start]
+                <li>pandas [cite: 860]</li>
+                [cite_start]
+                <li>torch [cite: 1023]</li>
+              </ul>
+            </div>
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">주요 경로 설정</h3>
+              <ul class="space-y-3 text-sm">
+                <li>
+                  <span class="font-medium text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded">MODEL_NAME</span>
+                  <p class="font-mono text-gray-700 mt-1">[cite_start]KETI-AIR/long-ke-t5-base [cite: 873]</p>
+                </li>
+                <li>
+                  <span class="font-medium text-xs text-green-600 bg-green-100 px-2 py-1 rounded">TRAIN_CSV_PATH</span>
+                  <p class="font-mono text-gray-700 mt-1">
+                    [cite_start].../Training/processed_all_tasks.csv [cite: 875]
+                  </p>
+                </li>
+                <li>
+                  <span class="font-medium text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded"
+                    >VALID_CSV_PATH</span
+                  >
+                  <p class="font-mono text-gray-700 mt-1">
+                    [cite_start].../Validation/processed_validation.csv [cite: 875]
+                  </p>
+                </li>
+                <li>
+                  <span class="font-medium text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">FINAL_MODEL_PATH</span>
+                  <p class="font-mono text-gray-700 mt-1">[cite_start].../model-final/long-ke-t5 [cite: 877]</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-tokenization" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">🔄 5~7단계: 데이터 전처리</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">데이터셋 로드 결과</h3>
+              <p class="font-mono bg-gray-100 p-4 rounded-md text-gray-700">
+                [cite_start][cite: 1013-1022]
+                <br />
+                DatasetDict({
+                <br />
+                &nbsp;&nbsp;train: Dataset({
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;features: ['input_text', 'target_text'],
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;num_rows: 205711
+                <br />
+                &nbsp;&nbsp;})
+                <br />
+                &nbsp;&nbsp;validation: Dataset ({
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;features: ['input_text', 'target_text'],
+                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;num_rows: 25705
+                <br />
+                &nbsp;&nbsp;})
+                <br />
+                })
+              </p>
+            </div>
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">토큰화 주요 설정</h3>
+              <ul class="space-y-4">
+                <li>
+                  <div class="font-medium text-gray-500">MAX_INPUT_LENGTH (입력)</div>
+                  <div class="text-2xl font-bold text-gray-800">2048 <span class="text-lg">토큰</span></div>
+                  <div class="text-sm text-gray-500">
+                    [cite_start]EDA 기반 99% 지점(2548자) 및 모델 한계 고려 [cite: 958]
+                  </div>
+                </li>
+                <li>
+                  <div class="font-medium text-gray-500">MAX_TARGET_LENGTH (출력)</div>
+                  <div class="text-2xl font-bold text-gray-800">512 <span class="text-lg">토큰</span></div>
+                  <div class="text-sm text-gray-500">
+                    [cite_start]요약 태스크(최대 450자)를 커버하기 위해 설정 [cite: 960]
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="stat-card mt-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">토큰화 함수 (preprocess_function)</h3>
+            <pre>
+<code><span class="token keyword">def</span> <span class="token function">preprocess_function</span>(examples):
+    <span class="token comment"># 1. Input (Source) 토큰화</span>
+    model_inputs = tokenizer(
+        examples[<span class="token string">'input_text'</span>], 
+        max_length=MAX_INPUT_LENGTH, 
+        truncation=<span class="token keyword">True</span>
+    [cite_start]) <span class="token comment">[cite: 967-971]</span>
+    
+    <span class="token comment"># 2. Target (Label) 토큰화</span>
+    [cite_start]<span class="token keyword">with</span> tokenizer.as_target_tokenizer(): <span class="token comment">[cite: 974]</span>
+        labels = tokenizer(
+            examples[<span class="token string">'target_text'</span>], 
+            max_length=MAX_TARGET_LENGTH, 
+            truncation=<span class="token keyword">True</span>
+        [cite_start]) <span class="token comment">[cite: 975-978]</span>
+
+    <span class="token comment"># 3. 모델이 사용할 'labels' 필드에 할당</span>
+    [cite_start]model_inputs[<span class="token string">'labels'</span>] = labels[<span class="token string">'input_ids'</span>] <span class="token comment">[cite: 980]</span>
+    <span class="token keyword">return</span> model_inputs</code>
+</pre>
+          </div>
+        </section>
+
+        <section id="page-arguments" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">⚙️ 8단계: 학습 설정 (TrainingArguments)</h2>
+          <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg mb-6">
+            <p class="font-semibold text-yellow-800">
+              핵심: A100 GPU 환경에서 `nan` (그래디언트 폭발) 및 `OOM` (메모리 초과) 오류를 해결하기 위한 안정화 설정이
+              이 학습의 핵심입니다.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-indigo-600 mb-4">메모리/OOM 안정화</h3>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>
+                  <strong class="text-gray-900">per_device_train_batch_size:</strong>
+                  [cite_start]8 <span class="text-gray-500">(16에서 감소)</span> [cite: 1047]
+                </li>
+                <li>
+                  <strong class="text-gray-900">gradient_accumulation_steps:</strong>
+                  [cite_start]2 <span class="text-gray-500">(1에서 증가)</span> [cite: 1049]
+                </li>
+                <li>
+                  <strong class="text-gray-900">PYTORCH_CUDA_ALLOC_CONF:</strong>
+                  [cite_start]"expandable_segments:True" [cite: 1028]
+                </li>
+                <li class="font-medium text-indigo-700">= 유효 배치 크기 16 유지, 메모리 사용량 50% 감소</li>
+              </ul>
+            </div>
+
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-red-600 mb-4">NAN/폭주 안정화</h3>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>
+                  <strong class="text-gray-900">max_grad_norm:</strong> 1.0 [cite_start]<span class="text-gray-500"
+                    >(그래디언트 클리핑)</span
+                  >
+                  [cite: 1051]
+                </li>
+                <li>
+                  <strong class="text-gray-900">learning_rate:</strong> 3e-5 [cite_start]<span class="text-gray-500"
+                    >(5e-5에서 감소)</span
+                  >
+                  [cite: 1044]
+                </li>
+                <li>
+                  <strong class="text-gray-900">warmup_ratio:</strong> 0.05 [cite_start]<span class="text-gray-500"
+                    >(초반 안정화)</span
+                  >
+                  [cite: 1045]
+                </li>
+              </ul>
+            </div>
+
+            <div class="stat-card">
+              <h3 class="text-xl font-semibold text-green-600 mb-4">A100 성능 최적화</h3>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>
+                  <strong class="text-gray-900">bf16:</strong> True [cite_start]<span class="text-gray-500"
+                    >(Mixed Precision)</span
+                  >
+                  [cite: 1055]
+                </li>
+                <li>
+                  <strong class="text-gray-900">TF32:</strong> True [cite_start]<span class="text-gray-500"
+                    >(TensorFloat32)</span
+                  >
+                  [cite: 1039, 1040]
+                </li>
+                <li>
+                  <strong class="text-gray-900">Flash Attention 2:</strong>
+                  활성화 (모델 로드 시)
+                </li>
+                <li>
+                  <strong class="text-gray-900">eval_steps:</strong> 4000 [cite_start]<span class="text-gray-500"
+                    >(검증 횟수 12회→3회)</span
+                  >
+                  [cite: 1064]
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-results" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">📈 9~10단계: 학습 결과</h2>
+          <div class="stat-card">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">최종 학습 로그</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              [cite_start]총 1 Epoch, 12,857 스텝을 2시간 25분 19초 만에 완료했습니다. [cite: 1096]
+            </p>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      Step
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      Training Loss
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      Validation Loss
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr class="hover:bg-indigo-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">[cite_start]4000 [cite: 1097]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">[cite_start]1.402500 [cite: 1098]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold">[cite_start]0.998595 [cite: 1102]</td>
+                  </tr>
+                  <tr class="hover:bg-indigo-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">[cite_start]8000 [cite: 1099]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">[cite_start]1.330800 [cite: 1100]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold">[cite_start]0.953155 [cite: 1103]</td>
+                  </tr>
+                  <tr class="hover:bg-indigo-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">[cite_start]12000 [cite: 1105]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">[cite_start]1.309400 [cite: 1101]</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                      [cite_start]0.939735 (Best) [cite: 1104]
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-6 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-r-lg">
+              <h4 class="font-semibold text-indigo-800">최종 결론</h4>
+              <p class="text-sm text-indigo-700">
+                [cite_start]`load_best_model_at_end=True` [cite: 1068] 설정에 따라, 가장 검증 손실(Validation Loss)이
+                낮았던 12,000 스텝의 모델이 [cite_start]`.../model-final/long-ke-t5` 경로에 최종 저장되었습니다. [cite:
+                1115, 1116]
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Navigation Logic (from template)
+      function showPage(pageId, clickedElement) {
+        // Hide all pages
+        document.querySelectorAll(".page-content").forEach((page) => {
+          page.classList.add("hidden");
+        });
+        // Show target page
+        const targetPage = document.getElementById("page-" + pageId);
+        if (targetPage) {
+          targetPage.classList.remove("hidden");
+        }
+        // Update active nav item
+        document.querySelectorAll(".nav-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+        if (clickedElement) {
+          clickedElement.classList.add("active");
+        }
+      }
+
+      // Set initial active page
+      document.addEventListener("DOMContentLoaded", () => {
+        showPage("home", document.querySelector('.nav-item[href="#home"]'));
+      });
+    </script>
+  </body>
+</html>
