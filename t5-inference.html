@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📊 모델 추론 리포트 (T5 - 1차 평가)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", "Noto Sans KR", sans-serif;
+        background-color: #f8f7f4; /* Calm Neutral: Ivory */
+      }
+      .nav-item {
+        transition: all 0.2s ease;
+      }
+      .nav-item:hover {
+        background-color: #eef2ff; /* Indigo Accent Hover */
+        color: #4338ca;
+      }
+      .nav-item.active {
+        background-color: #4f46e5; /* Indigo Accent */
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      /* Hide scrollbar */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .stat-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      /* Syntax Highlighting Style */
+      pre {
+        background-color: #1f2937; /* bg-gray-800 */
+        color: #d1d5db; /* text-gray-300 */
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.875rem;
+      }
+      pre .token.comment {
+        color: #6b7280;
+      }
+      pre .token.function {
+        color: #c084fc;
+      }
+      pre .token.string {
+        color: #a5f3fc;
+      }
+      pre .token.keyword {
+        color: #f87171;
+      }
+      pre .token.number {
+        color: #fcd34d;
+      }
+      pre .token.operator {
+        color: #f87171;
+      }
+      pre .token.punctuation {
+        color: #818cf8;
+      }
+      pre .token.attr-name {
+        color: #f0abfc;
+      }
+      pre .token.boolean {
+        color: #f87171;
+      }
+    </style>
+  </head>
+  <body class="text-gray-800">
+    <div class="flex flex-col md:flex-row min-h-screen">
+      <nav class="md:w-64 bg-white p-4 md:p-6 shadow-lg md:min-h-screen shrink-0">
+        <h1 class="text-2xl font-bold text-indigo-700 mb-6">📊 모델 추론 리포트</h1>
+        <ul class="space-y-2">
+          <li>
+            <a
+              href="#home"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700 active"
+              onclick="showPage('home', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                ></path>
+              </svg>
+              개요 (Summary)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#setup"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('setup', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                ></path>
+              </svg>
+              추론 환경 (Setup)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#suite"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('suite', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.97l-2.305 1.844a.25.25 0 01-.316-.025l-1.422-1.422a.25.25 0 01-.025-.316l1.844-2.305a6 6 0 00.97-3.86l-.477-2.387a2 2 0 00-.547-1.022l-1.42-1.42a2 2 0 00-2.828 0l-4.243 4.242a2 2 0 000 2.828l1.42 1.42a2 2 0 001.022.547l2.387.477a6 6 0 003.86-.97l2.305-1.844a.25.25 0 01.316.025l1.422 1.422a.25.25 0 01.025.316l-1.844 2.305a6 6 0 00-.97 3.86l.477 2.387a2 2 0 00.547 1.022l1.42 1.42a2 2 0 002.828 0l4.243-4.242a2 2 0 000-2.828l-1.42-1.42z"
+                ></path>
+              </svg>
+              평가 세트 (Test Suite)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#results"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('results', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+              상세 결과 (Results)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#analysis"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('analysis', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                ></path>
+              </svg>
+              실패 분석 (Analysis)
+            </a>
+          </li>
+          <li>
+            <a
+              href="#nextsteps"
+              class="nav-item flex items-center p-3 rounded-lg text-gray-700"
+              onclick="showPage('nextsteps', this)"
+            >
+              <svg
+                class="w-5 h-5 mr-3 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                ></path>
+              </svg>
+              다음 단계 (Next Steps)
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="flex-1 p-6 md:p-10 overflow-auto no-scrollbar">
+        <section id="page-home" class="page-content">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">💡 추론 개요 (1차 평가)</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">테스트 모델</div>
+              <div class="text-2xl font-bold text-indigo-600">long-ke-t5-base</div>
+              <div class="text-sm text-gray-500">(민간 데이터 1-epoch 학습)</div>
+            </div>
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">평가 세트 (Test Suite)</div>
+              <div class="text-3xl font-bold text-indigo-600">20<span class="text-xl ml-1">개</span></div>
+              [cite_start]
+              <div class="text-sm text-gray-500">수동 정의된 시나리오 [cite: 31]</div>
+            </div>
+            <div class="stat-card">
+              <div class="text-sm font-medium text-gray-500">총 평가 태스크</div>
+              <div class="text-3xl font-bold text-indigo-600">79<span class="text-xl ml-1">개</span></div>
+              [cite_start]
+              <div class="text-sm text-gray-500">(Q&A, 요약, 분류) [cite: 719, 648-672]</div>
+            </div>
+            <div class="stat-card bg-red-600 text-white">
+              <div class="text-sm font-medium text-red-200">평가 결론</div>
+              <div class="text-3xl font-bold">실패 (성능 미달)</div>
+              <div class="text-sm text-red-100">데이터 품질 문제 심각</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">종합 평가 (Analysis)</h3>
+            <div class="p-4 bg-red-50 border border-red-300 rounded-lg">
+              <p class="font-semibold text-red-800">
+                결론: 현재 모델의 성능은 전반적으로 매우 낮으며, 세 가지 작업(Q&A, 요약, 분류) 모두에서 심각한 오류를
+                [cite_start]보이고 있습니다. [cite: 765]
+              </p>
+            </div>
+            <div class="mt-4 space-y-3 text-gray-700">
+              <p>
+                <strong class="text-gray-900">1. '분류(Classify)' 작업의 치명적인 문제:</strong>
+                [cite_start]훈련 데이터의 라벨이 극도로 불균형하여 [cite: 769] [cite_start]모델이 대화 내용을 보지 않고
+                가장 빈번한 라벨('단일 요건 민원')만 예측합니다. [cite: 771]
+              </p>
+              <p>
+                <strong class="text-gray-900">2. 'Q&A' 작업의 실패:</strong>
+                모델이 질문 의도를 파악하지 못하고(문해력 부족), 계산에 실패하며, 엉뚱한 정보를 가져오거나 환각을
+                [cite_start]일으킵니다. [cite: 774]
+              </p>
+              <p>
+                <strong class="text-gray-900">3. '요약(Summary)' 작업의 실패:</strong>
+                [cite_start]요약 결과에 원본 대화에 없는 내용이 추가되거나(환각)[cite: 795], 원본의 핵심 사실 관계(숫자,
+                스펙)가 [cite_start]틀립니다. [cite: 793, 798]
+              </p>
+              <p class="mt-4 font-bold text-indigo-700">
+                이 문제는 모델 아키텍처나 추론 옵션의 문제가 아닌, 100% 훈련 데이터의 품질과 구성 문제입니다.
+                [cite_start][cite: 804]
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-setup" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">⚙️ 1~2단계: 추론 환경 설정</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="stat-card">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">최종 모델 경로</h3>
+              <p class="font-mono text-sm text-indigo-600">
+                [cite_start]/content/drive/MyDrive/project2/model-final/long-ke-t5 [cite: 6]
+              </p>
+            </div>
+            <div class="stat-card">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Attention 구현</h3>
+              [cite_start]
+              <p class="font-mono text-sm text-indigo-600">attn_implementation="eager" [cite: 19]</p>
+              [cite_start]
+              <p class="text-xs text-gray-500 mt-1">Flash Attention 2 / SDPA가 지원되지 않음 [cite: 13]</p>
+            </div>
+            <div class="stat-card">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">데이터 타입</h3>
+              [cite_start]
+              <p class="font-mono text-sm text-indigo-600">torch.bfloat16 [cite: 18]</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">모델 및 토크나이저 로드 코드</h3>
+            <pre>
+<code class="language-python"><span class="token keyword">import</span> torch
+<span class="token keyword">from</span> transformers <span class="token keyword">import</span> AutoTokenizer, AutoModelForSeq2SeqLM
+
+<span class="token comment"># 10단계에서 모델을 저장한 최종 경로</span>
+FINAL_MODEL_PATH = <span class="token string">"/content/drive/MyDrive/project2/model-final/long-ke-t5"</span> <span class="token punctuation">[</span>cite: <span class="token number">6</span><span class="token punctuation">]</span>
+device = torch.device(<span class="token string">"cuda"</span> <span class="token keyword">if</span> torch.cuda.is_available() <span class="token keyword">else</span> <span class="token string">"cpu"</span>) <span class="token punctuation">[</span>cite: <span class="token number">21</span><span class="token punctuation">]</span>
+
+print(<span class="token string">f"</span><span class="token string"><span class="token punctuation">{</span>FINAL_MODEL_PATH<span class="token punctuation">}</span></span><span class="token string">에서 최종 모델 로드 중..."</span>)
+
+<span class="token comment"># 1. 토크나이저 로드</span>
+tokenizer = AutoTokenizer.from_pretrained(FINAL_MODEL_PATH) <span class="token punctuation">[</span>cite: <span class="token number">11</span><span class="token punctuation">]</span>
+
+<span class="token comment"># 2. 모델 로드 (eager 어텐션 구현 사용)</span>
+model = AutoModelForSeq2SeqLM.from_pretrained(
+    FINAL_MODEL_PATH,
+    dtype=torch.bfloat16, <span class="token punctuation">[</span>cite: <span class="token number">18</span><span class="token punctuation">]</span>
+    attn_implementation=<span class="token string">"eager"</span> <span class="token punctuation">[</span>cite: <span class="token number">19</span><span class="token punctuation">]</span>
+)
+
+<span class="token comment"># 3. GPU로 모델 이동 및 추론 모드 설정</span>
+model.to(device) <span class="token punctuation">[</span>cite: <span class="token number">22</span><span class="token punctuation">]</span>
+model.eval() <span class="token punctuation">[</span>cite: <span class="token number">23</span><span class="token punctuation">]</span>
+print(<span class="token string">"모델 로드 및 추론 준비 완료."</span>)</code>
+</pre>
+          </div>
+        </section>
+
+        <section id="page-suite" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">🧪 3단계: 평가 세트 (Test Suite) 정의</h2>
+          <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg mb-6">
+            <p class="font-semibold text-blue-800">
+              [cite_start]총 20개의 시나리오로 구성된 평가 세트(Test Suite)를 정의했습니다. [cite: 31] 각 시나리오는
+              대화 [cite_start]내용(content)과 3개의 태스크(Q&A, 요약, 분류)에 대한 정답(answer)을 포함합니다. [cite:
+              43, 52, 54]
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="stat-card">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">주요 테스트 타겟</h3>
+              <ul class="list-disc list-outside space-y-2 pl-5 text-gray-700 text-sm">
+                [cite_start]
+                <li>숫자/날짜 추적 [cite: 33]</li>
+                [cite_start]
+                <li>정보 변경 사항 추적 [cite: 61]</li>
+                [cite_start]
+                <li>금액 계산 [cite: 91]</li>
+                [cite_start]
+                <li>대화에 없는 정보 (환각 유도) [cite: 180]</li>
+                [cite_start]
+                <li>복합 요건 [cite: 204]</li>
+              </ul>
+            </div>
+            <div class="stat-card col-span-2">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">데이터 구조 (예시 1)</h3>
+              <p class="text-xs text-gray-500 mb-2">[cite_start][예시 1] 여행 예약 (숫자/날짜 오류 타겟) [cite: 33]</p>
+              <pre>
+<code class="language-json"><span class="token punctuation">{</span>
+  <span class="token attr-name">"id"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token attr-name">"content"</span><span class="token operator">:</span> <span class="token string">"고객: 안녕하세요. 4월 20일에 괌으로 가는 가족 여행 예약을 하고 싶은데요...\n상담사: 알겠습니다. 성인 2, 아동 1, 유아 1명이시네요...\n고객: 네, 그걸로 하고요. 호텔은 힐튼 킹 디럭스 룸으로 4박 5일 부탁합니다..."</span><span class="token punctuation">,</span>
+  <span class="token attr-name">"tasks"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token attr-name">"qa"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span>
+        <span class="token attr-name">"question"</span><span class="token operator">:</span> <span class="token string">"Q&A: 여행에 가는 총 인원은 몇 명이야? content: "</span><span class="token punctuation">,</span>
+        <span class="token attr-name">"answer"</span><span class="token operator">:</span> <span class="token string">"총 4명입니다. (성인 2명, 아동 1명, 유아 1명)"</span> <span class="token punctuation">[</span>cite: <span class="token number">46</span><span class="token punctuation">, </span><span class="token number">47</span><span class="token punctuation">]</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">{</span>
+        <span class="token attr-name">"question"</span><span class="token operator">:</span> <span class="token string">"Q&A: 호텔 숙박 기간은 며칠이야? content: "</span><span class="token punctuation">,</span>
+        <span class="token attr-name">"answer"</span><span class="token operator">:</span> <span class="token string">"4박 5일입니다."</span> <span class="token punctuation">[</span>cite: <span class="token number">48</span><span class="token punctuation">, </span><span class="token number">49</span><span class="token punctuation">]</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token attr-name">"summary"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token attr-name">"prompt"</span><span class="token operator">:</span> <span class="token string">"summarize: content:"</span><span class="token punctuation">,</span>
+      <span class="token attr-name">"answer"</span><span class="token operator">:</span> <span class="token string">"고객이 4월 20일 괌 가족 여행 예약을 요청함..."</span> <span class="token punctuation">[</span>cite: <span class="token number">55</span><span class="token punctuation">, </span><span class="token number">56</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token attr-name">"classify"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token attr-name">"prompt"</span><span class="token operator">:</span> <span class="token string">"classify: content: "</span><span class="token punctuation">,</span>
+      <span class="token attr-name">"answer"</span><span class="token operator">:</span> <span class="token string">"단일 요건 인원"</span> <span class="token punctuation">[</span>cite: <span class="token number">57</span><span class="token punctuation">, </span><span class="token number">58</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code>
+</pre>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-results" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">📈 4단계: 추론 결과 비교 (실패 사례)</h2>
+          <div class="stat-card mb-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">모델 추론 (Generate) 설정</h3>
+            <pre>
+[cite_start]<code class="language-python"><span class="token comment"># 4. 모델 생성(Generate) 실행 [cite: 683]</span>
+output_tokens = model.generate(
+    inputs.input_ids,
+    max_new_tokens=MAX_TARGET_LENGTH, <span class="token punctuation">[</span>cite: <span class="token number">687</span><span class="token punctuation">]</span>
+    num_beams=<span class="token number">4</span>, <span class="token punctuation">[</span>cite: <span class="token number">689</span><span class="token punctuation">]</span>
+    no_repeat_ngram_size=<span class="token number">2</span>, <span class="token punctuation">[</span>cite: <span class="token number">690</span><span class="token punctuation">]</span>
+    early_stopping=<span class="token boolean">True</span> <span class="token punctuation">[</span>cite: <span class="token number">691</span><span class="token punctuation">]</span>
+)
+[cite_start]<span class="token comment"># 5. 결과 디코딩 [cite: 694]</span>
+model_results = tokenizer.batch_decode(output_tokens, skip_special_tokens=<span class="token boolean">True</span>) <span class="token punctuation">[</span>cite: <span class="token number">695</span><span class="token punctuation">]</span></code>
+</pre>
+          </div>
+
+          <div class="stat-card">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">주요 실패 사례 분석</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              모델이 질문의 의도를 파악하지 못하거나, 대화에 없는 정보를 생성(환각)하고, 사실 관계를 왜곡하는 심각한
+              [cite_start]오류가 다수 발견되었습니다. [cite: 774, 792]
+            </p>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      ID / Task
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      실패 유형
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      모델 생성 결과 (오답)
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                    >
+                      정답 (GT)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 1 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">추론 실패 (누락)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"성인 2명과 아동 1명"</td>
+                    [cite_start]
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"총 4명... (유아 누락)" [cite: 785]</td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 1 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">정보 오인</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"4월 20일" (여행 시작일)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      "4박 5일입니다." (숙박 기간) [cite_start][cite: 776]
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 19 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">정보 오인</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"14만 원" (총금액)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      "총 3개입니다." (상품 개수) [cite_start][cite: 778]
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 8 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">정보 오인 (추적 실패)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"7시 30분" (변경된 시간)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      "7시였습니다." (원래 시간) [cite_start][cite: 777]
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 3 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">환각 (계산 오류)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"총 5개" (피자/세트 합산)</td>
+                    [cite_start]
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"2개입니다. (콜라 2개)" [cite: 789]</td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 6 (Q&A)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">환각 (엉뚱한 정보)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"6.7인치입니다." (화면 크기)</td>
+                    [cite_start]
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"알 수 없음" (가격 질문) [cite: 790, 791]</td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 9 (Summary)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">사실 관계 왜곡</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"그램 15... 1.29kg... 18시간"</td>
+                    [cite_start]
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">(그램과 맥북 스펙 섞임) [cite: 800]</td>
+                  </tr>
+                  <tr class="hover:bg-red-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">ID 12 (Summary)</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">사실 관계 왜곡</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">"월 7,900원에 모바일과 PC..."</td>
+                    [cite_start]
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">(요금제 설명 오류) [cite: 801]</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-analysis" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">🔍 5단계: 실패 원인 분석</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="stat-card lg:col-span-3 bg-red-50 border border-red-200">
+              <h3 class="text-xl font-semibold text-red-700 mb-4">1. '분류(Classify)' 작업의 치명적인 문제</h3>
+              <ul class="space-y-3 text-gray-700">
+                <li>
+                  <strong>현상:</strong> "ID 1의 '단일 요건 민원'을 맞춘 것을 제외하고, 모델은 모든 분류 문제를 '단일
+                  요건 [cite_start]민원' 또는 '일반 문의 상담' 등으로만 예측하고 있습니다." [cite: 768]
+                </li>
+                <li>
+                  <strong>분석:</strong> "이는 훈련 데이터의 classify 라벨이 극도로 불균형하다는 강력한 신호입니다. (예:
+                  [cite_start]훈련 데이터 10,000개 중 9,900개가 '단일 요건 민원'인 경우)" [cite: 769, 770]
+                </li>
+                <li>
+                  <strong>결과:</strong> "모델은 classify: 라는 프롬프트를 보면, 대화 내용을 읽지도 않고 그냥 가장 많이
+                  본 [cite_start]'단일 요건 민원'을 뱉어내고 있습니다." [cite: 771]
+                </li>
+              </ul>
+            </div>
+
+            <div class="stat-card lg:col-span-3 bg-red-50 border border-red-200">
+              <h3 class="text-xl font-semibold text-red-700 mb-4">2. 'Q&A' 작업의 실패 (문해력 및 추론 부족)</h3>
+              <p class="text-base text-gray-700 mb-4">
+                "모델이 질문의 의도를 파악하지 못하고, 엉뚱한 정보를 가져오거나, 계산에 실패하고, 심지어 환각을
+                [cite_start]일으킵니다." [cite: 774]
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  [cite_start]
+                  <h4 class="font-semibold text-gray-800">정보 오인 (엉뚱한 대답) [cite: 775]</h4>
+                  <ul class="list-disc list-outside space-y-1 pl-5 text-sm mt-2">
+                    [cite_start]
+                    <li>ID 1 (숙박 기간?) → "4월 20일" [cite: 776]</li>
+                    [cite_start]
+                    <li>ID 8 (원래 시간?) → "7시 30분" [cite: 777]</li>
+                    [cite_start]
+                    <li>ID 19 (총 개수?) → "14만 원" [cite: 778]</li>
+                  </ul>
+                </div>
+                <div>
+                  [cite_start]
+                  <h4 class="font-semibold text-gray-800">추론/계산 실패 [cite: 779]</h4>
+                  <ul class="list-disc list-outside space-y-1 pl-5 text-sm mt-2">
+                    [cite_start]
+                    <li>ID 1 (총 인원?) → (유아 누락) [cite: 785]</li>
+                    [cite_start]
+                    <li>ID 2 (최종 날짜?) → "10월 30일" (변경 전) [cite: 787]</li>
+                  </ul>
+                </div>
+                <div>
+                  [cite_start]
+                  <h4 class="font-semibold text-gray-800">환각 (거짓 답변) [cite: 788]</h4>
+                  <ul class="list-disc list-outside space-y-1 pl-5 text-sm mt-2">
+                    [cite_start]
+                    <li>ID 3 (음료 개수?) → "총 5개" [cite: 789]</li>
+                    [cite_start]
+                    <li>ID 6 (가격은?) → "6.7인치입니다." [cite: 790, 791]</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card lg:col-span-3 bg-red-50 border border-red-200">
+              <h3 class="text-xl font-semibold text-red-700 mb-4">3. '요약(Summary)' 작업의 실패 (사실 관계 왜곡)</h3>
+              <p class="text-base text-gray-700 mb-4">
+                [cite_start]"요약 결과에 원본에 없는 내용이 추가되거나(환각), 원본의 핵심 사실 관계(숫자, 스펙)가
+                틀립니다." [cite: 793]
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  [cite_start]
+                  <h4 class="font-semibold text-gray-800">환각 (없는 내용 생성) [cite: 795]</h4>
+                  <ul class="list-disc list-outside space-y-1 pl-5 text-sm mt-2">
+                    [cite_start]
+                    <li>ID 1: "...호텔은 대한항공과 함께..." [cite: 796]</li>
+                    [cite_start]
+                    <li>ID 3: "...고객이 원하는 가격대로..." [cite: 797]</li>
+                  </ul>
+                </div>
+                <div>
+                  [cite_start]
+                  <h4 class="font-semibold text-gray-800">사실 관계 왜곡 (틀린 정보) [cite: 798]</h4>
+                  <ul class="list-disc list-outside space-y-1 pl-5 text-sm mt-2">
+                    [cite_start]
+                    <li>ID 9: (그램/맥북 스펙 섞임) [cite: 800]</li>
+                    [cite_start]
+                    <li>ID 12: (요금제 설명 오류) [cite: 801]</li>
+                    [cite_start]
+                    <li>ID 20: (예약 시간 오류) [cite: 802]</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-nextsteps" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-900 mb-6">🚀 6단계: 다음 단계 (훈련 데이터 수정)</h2>
+          <div class="p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg mb-6">
+            <p class="font-semibold text-green-800">
+              이 문제는 모델 아키텍처나 `generate()`의 옵션 문제가 아닙니다. 100% 훈련 데이터의 품질과 구성 문제입니다.
+              [cite_start][cite: 804] [cite_start]1단계에서 만든 평가 세트가 훌륭한 나침반이 되었습니다. [cite: 805]
+            </p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="stat-card border-l-4 border-blue-500">
+              <h3 class="text-xl font-semibold text-blue-700 mb-4">1. (가장 시급) 'Classify' 밸런스 맞추기</h3>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>[cite_start]<strong>확인:</strong> 훈련 데이터의 라벨 분포 확인. [cite: 807]</li>
+                <li>
+                  <strong>조치:</strong> '단일 요건 민원' 외 '예약 변경', '기술 지원', '복합 요건' 등의 라벨 데이터를
+                  의도적으로 대량 수집/생성하여 밸런스를 맞춰야 합니다. (최소 각 100~500개 이상) [cite_start][cite: 809,
+                  810]
+                </li>
+              </ul>
+            </div>
+
+            <div class="stat-card border-l-4 border-blue-500">
+              <h3 class="text-xl font-semibold text-blue-700 mb-4">2. 'Q&A' 데이터 대폭 보강</h3>
+              <p class="text-sm text-gray-600 mb-3">
+                [cite_start]모델이 단순 정보 검색이 아닌 '추론'을 하도록 훈련시켜야 합니다. [cite: 812]
+              </p>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>
+                  <strong>"알 수 없음" 훈련 (중요):</strong> 대화에 없는 정보를 묻는 질문과 `"output": "알 수 없음"`
+                  정답 세트를 반드시 추가해야 합니다. (ID 6 실패 대응) [cite_start][cite: 813]
+                </li>
+                <li>
+                  <strong>"계산/개수" 훈련:</strong> "음료는 몇 개?", "총 인원은 몇 명?" 등 계산이 필요한 Q&A 데이터를
+                  추가합니다. (ID 3, 1, 19 대응) [cite_start][cite: 814, 815]
+                </li>
+                <li>
+                  <strong>"정보 변경/추적" 훈련:</strong> "최종 예약 날짜는?" 등 대화의 흐름을 추적해야 답할 수 있는 Q&A
+                  데이터를 추가합니다. (ID 2, 8 대응) [cite_start][cite: 816, 817]
+                </li>
+                <li>
+                  <strong>"질문 의도" 훈련:</strong> "숙박 기간은?" (4박 5일) vs "여행 시작일은?" (4월 20일)처럼, 비슷한
+                  내용에서 정확한 답을 찾는 데이터를 추가합니다. (ID 1 대응) [cite_start][cite: 818, 819]
+                </li>
+              </ul>
+            </div>
+
+            <div class="stat-card border-l-4 border-blue-500">
+              <h3 class="text-xl font-semibold text-blue-700 mb-4">3. 'Summary' 데이터 품질 검수</h3>
+              <ul class="list-disc list-outside space-y-3 pl-5 text-gray-700">
+                <li>
+                  <strong>훈련 데이터 검수:</strong> 현재 훈련 데이터의 요약(output)에 ID 9, 12처럼 환각이나 사실 왜곡이
+                  [cite_start]있는지 무작위로 샘플링하여 검수해야 합니다. [cite: 821]
+                </li>
+                <li>
+                  <strong>고품질 요약 추가:</strong> 원본(input)의 핵심 사실(숫자, 날짜, 스펙, 금액)을 절대 왜곡하거나
+                  [cite_start]누락하지 않는 깨끗하고 사실 기반의 요약 데이터를 보강해야 합니다. [cite: 822]
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Navigation Logic
+      function showPage(pageId, clickedElement) {
+        // Hide all pages
+        document.querySelectorAll(".page-content").forEach((page) => {
+          page.classList.add("hidden");
+        });
+        // Show target page
+        const targetPage = document.getElementById("page-" + pageId);
+        if (targetPage) {
+          targetPage.classList.remove("hidden");
+        }
+        // Update active nav item
+        document.querySelectorAll(".nav-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+        if (clickedElement) {
+          clickedElement.classList.add("active");
+        }
+      }
+
+      // Set initial active page
+      document.addEventListener("DOMContentLoaded", () => {
+        showPage("home", document.querySelector('.nav-item[href="#home"]'));
+      });
+    </script>
+  </body>
+</html>
